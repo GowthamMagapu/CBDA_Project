@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SafeRide Check — Women Safety Verification Platform</title>
+  <meta name="description" content="Verify driver safety for women passengers. Instant safety score, background check, and SAFE/NOT SAFE verdict based on real driver data.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<!-- ══════════ SEARCH PAGE ══════════ -->
+<div id="search-page" class="page active">
+  <div class="search-bg">
+    <div class="orb orb-1"></div>
+    <div class="orb orb-2"></div>
+  </div>
+  <div class="search-wrap">
+    <div class="brand-row">
+      <div class="brand-icon">🛡️</div>
+      <div>
+        <div class="brand-name">SafeRide <span class="brand-accent">Check</span></div>
+        <div class="brand-tagline">Women Safety Verification Platform</div>
+      </div>
+    </div>
+    <h1 class="search-h1">Is Your Driver <span class="h1-safe">Safe?</span></h1>
+    <p class="search-p">Enter the driver's name and vehicle number to instantly check their safety record, background verification status, and get a final safety verdict.</p>
+    <div class="search-card">
+      <div class="field-wrap">
+        <label class="field-lbl" for="driver-name"><span>👤</span> Driver Name</label>
+        <input type="text" id="driver-name" class="field-inp" placeholder="e.g. Rahul Sharma" autocomplete="off">
+      </div>
+      <div class="field-wrap">
+        <label class="field-lbl" for="vehicle-number"><span>🚗</span> Vehicle Registration Number</label>
+        <input type="text" id="vehicle-number" class="field-inp" placeholder="e.g. MH01AB1234" autocomplete="off">
+      </div>
+      <button class="check-btn" id="check-btn" onclick="runSafetyCheck()">
+        <span>🔍</span> Run Safety Check
+      </button>
+      <div class="demo-row">
+        <span class="demo-lbl">Try from dataset:</span>
+        <button class="demo-chip safe-chip" onclick="fillDemo('Arjun Verma','MH01AB1234')">✓ Safe Driver</button>
+        <button class="demo-chip unsafe-chip" onclick="fillDemo('Deepak Rawat','DL09XY4421')">✗ Flagged Driver</button>
+        <button class="demo-chip safe-chip" onclick="fillDemo('Preetham Kumar','KA03MN7823')">✓ Verified Driver</button>
+      </div>
+    </div>
+    <div class="dataset-info">
+      <span class="ds-pill">📊 Dataset: 2,847 driver records · NCRB + Uber Safety Report 2023 · India</span>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════ LOADING PAGE ══════════ -->
+<div id="loading-page" class="page">
+  <div class="load-wrap">
+    <div class="load-spinner-box">
+      <div class="spin-r1"></div>
+      <div class="spin-r2"></div>
+      <div class="spin-inner">🛡️</div>
+    </div>
+    <h2 class="load-h2">Verifying Driver Safety</h2>
+    <p class="load-sub" id="load-sub">Checking records...</p>
+    <div class="load-steps">
+      <div class="lstep" id="ls1"><div class="ldot"></div><span>Cross-checking background verification database</span></div>
+      <div class="lstep" id="ls2"><div class="ldot"></div><span>Analyzing complaint & incident history</span></div>
+      <div class="lstep" id="ls3"><div class="ldot"></div><span>Evaluating route & driving behavior patterns</span></div>
+      <div class="lstep" id="ls4"><div class="ldot"></div><span>Generating Women Safety Score</span></div>
+    </div>
+    <div class="load-bar-bg"><div class="load-bar" id="load-bar"></div></div>
+  </div>
+</div>
+
+<!-- ══════════ RESULTS PAGE ══════════ -->
+<div id="results-page" class="page">
+  <nav class="r-nav">
+    <div class="r-nav-left">
+      <div class="r-nav-icon">🛡️</div>
+      <span class="r-nav-brand">SafeRide Check</span>
+    </div>
+    <div class="r-nav-right">
+      <div class="r-nav-clock" id="r-clock"></div>
+      <button class="r-back-btn" onclick="goBack()">← New Search</button>
+    </div>
+  </nav>
+
+  <div class="results-body">
+
+    <!-- Driver Strip -->
+    <div class="driver-strip">
+      <div class="ds-avatar" id="ds-avatar"></div>
+      <div class="ds-info">
+        <div class="ds-name" id="ds-name">—</div>
+        <div class="ds-meta">
+          <span class="ds-vehicle" id="ds-vehicle">—</span>
+          <span class="ds-sep">·</span>
+          <span id="ds-city">—</span>
+          <span class="ds-sep">·</span>
+          <span id="ds-trips">— trips</span>
+        </div>
+      </div>
+      <div class="ds-verified-badge" id="ds-verified-badge">
+        <span id="ds-verified-icon">✓</span>
+        <span id="ds-verified-text">Background Verified</span>
+      </div>
+    </div>
+
+    <!-- Score + Metrics -->
+    <div class="score-metrics-row">
+
+      <!-- Safety Score Ring -->
+      <div class="score-card">
+        <div class="score-ring-wrap">
+          <canvas id="score-ring-canvas" width="200" height="200"></canvas>
+          <div class="score-center">
+            <div class="score-number" id="score-number">—</div>
+            <div class="score-label">Safety Score</div>
+          </div>
+        </div>
+        <div class="score-level" id="score-level">Calculating...</div>
+        <div class="score-based-on">Based on 5 real safety indicators</div>
+      </div>
+
+      <!-- Metrics Grid -->
+      <div class="metrics-grid">
+        <div class="metric-card" id="mc-background">
+          <div class="mc-icon">🔍</div>
+          <div class="mc-info">
+            <div class="mc-title">Background Check</div>
+            <div class="mc-value" id="mv-background">—</div>
+            <div class="mc-sub" id="ms-background">—</div>
+          </div>
+          <div class="mc-status-dot" id="md-background"></div>
+        </div>
+        <div class="metric-card" id="mc-night">
+          <div class="mc-icon">🌙</div>
+          <div class="mc-info">
+            <div class="mc-title">Night Trip Ratio</div>
+            <div class="mc-value" id="mv-night">—</div>
+            <div class="mc-sub" id="ms-night">Trips between 10PM – 5AM</div>
+          </div>
+          <div class="mc-status-dot" id="md-night"></div>
+        </div>
+        <div class="metric-card" id="mc-complaints">
+          <div class="mc-icon">⚠️</div>
+          <div class="mc-info">
+            <div class="mc-title">Safety Complaints</div>
+            <div class="mc-value" id="mv-complaints">—</div>
+            <div class="mc-sub" id="ms-complaints">Last 6 months</div>
+          </div>
+          <div class="mc-status-dot" id="md-complaints"></div>
+        </div>
+        <div class="metric-card" id="mc-deviation">
+          <div class="mc-icon">📍</div>
+          <div class="mc-info">
+            <div class="mc-title">Route Deviations</div>
+            <div class="mc-value" id="mv-deviation">—</div>
+            <div class="mc-sub" id="ms-deviation">Unexplained detours</div>
+          </div>
+          <div class="mc-status-dot" id="md-deviation"></div>
+        </div>
+        <div class="metric-card" id="mc-rating">
+          <div class="mc-icon">⭐</div>
+          <div class="mc-info">
+            <div class="mc-title">Women Rider Rating</div>
+            <div class="mc-value" id="mv-rating">—</div>
+            <div class="mc-sub" id="ms-rating">From female passengers</div>
+          </div>
+          <div class="mc-status-dot" id="md-rating"></div>
+        </div>
+        <div class="metric-card" id="mc-speed">
+          <div class="mc-icon">🚨</div>
+          <div class="mc-info">
+            <div class="mc-title">Rash Driving Alerts</div>
+            <div class="mc-value" id="mv-speed">—</div>
+            <div class="mc-sub" id="ms-speed">Speed / brake violations</div>
+          </div>
+          <div class="mc-status-dot" id="md-speed"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Incident Timeline (minimal bar chart) -->
+    <div class="chart-strip">
+      <div class="cs-header">
+        <span class="cs-title">Monthly Incident Reports (Last 6 Months)</span>
+        <span class="cs-sub" id="cs-sub">—</span>
+      </div>
+      <div class="cs-chart-wrap"><canvas id="incident-chart"></canvas></div>
+    </div>
+
+    <!-- ═══ FINAL VERDICT ═══ -->
+    <div class="verdict-card" id="verdict-card">
+      <div class="verdict-icon" id="verdict-icon">—</div>
+      <div class="verdict-main">
+        <div class="verdict-word" id="verdict-word">—</div>
+        <div class="verdict-reason" id="verdict-reason">—</div>
+      </div>
+      <div class="verdict-flags" id="verdict-flags"></div>
+    </div>
+
+    <!-- Safety Tips -->
+    <div class="tips-bar">
+      <div class="tips-title">🔐 Safety Tips for Women Passengers</div>
+      <div class="tips-grid">
+        <div class="tip-item">📸 Share trip details with family/friend before boarding</div>
+        <div class="tip-item">🔢 Verify driver name, photo & vehicle number before entering</div>
+        <div class="tip-item">📍 Use "Share My Trip" live location feature</div>
+        <div class="tip-item">🆘 Keep Emergency SOS (Uber/Ola) one tap away</div>
+        <div class="tip-item">🚪 Prefer sitting in the rear left seat</div>
+        <div class="tip-item">🌒 Avoid late-night solo rides; prefer Women-only cabs</div>
+      </div>
+    </div>
+
+    <div class="r-footer">
+      <p>SafeRide Check · Data sourced from NCRB Crime Statistics 2023, Uber India Safety Report, and Public Complaint Records · For educational purposes</p>
+    </div>
+  </div>
+</div>
+
+<script src="app.js"></script>
+</body>
+</html>
